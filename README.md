@@ -1,30 +1,52 @@
 # SHT (habit-tracker)
-creating my own habit tracker for studying in urfu
+creating my own habit tracker while studying in university
 
-# Warm up
+## About
 
-## Stack
+A small app for tracking daily habits: a list of habits, a "done today" toggle,
+and (eventually) streaks and statistics.
 
-Language: Kotlin (currently the standard for Android)
-UI: Jetpack Compose or classic XML+View? Compose is more modern and faster to develop; I recommend it.
-Architecture: MVVM (ViewModel + StateFlow) — optimal for an app of this size
-Storage: Room (SQLite) for habits and notes; DataStore for settings
-DI: Hilt (or you can do without it at the start — for a small project, you can manage it manually)
-Build: Gradle KTS
+This is a learning project, built from scratch, step by step. Each iteration
+is a working version of the app.
 
-## Minimum functionality (MVP)
+## Tech stack
 
-Habit list (create / edit / delete)
-“Completed” mark for today
-Streak (current series of days)
-Simple statistics (calendar or heatmap for the month)
-Local notification reminder (optional, can be included in the second iteration)
+- **Language:** Kotlin
+- **UI:** Jetpack Compose (Material 3)
+- **Build:** Gradle (Kotlin DSL)
+- **minSdk:** 34
+- **targetSdk / compileSdk:** current versions at the time of project creation
 
-## Questions for myself
+Planned minimum additions:
+- Room — local database
+- ViewModel + StateFlow — state management
+- DataStore — preferences
+- Reminders (notifications)
 
-Android Studio configured, including an emulator/device?
-Compose or XML?
-Reminders, themes, data export — or is minimalism fine for now?
-App name?
+### Current state - Figuring out how to become a competent programmer
 
-## Time limit - before 2027
+#Daily news
+
+uh.. this is more difficult than I thought
+Thats my fist time using Kotlin but i`v got some progress
+
+### Iteration 1 — skeleton and static list
+
+- Android Studio project created (Empty Activity, Compose)
+- Environment set up: Android Studio, physical phone via USB debugging
+- `MainActivity` rewritten: instead of the welcome screen — a habit list screen
+- `Habit` data model (id, title, doneToday) — as a data class in code for now
+- Habit list hardcoded (4 items)
+- List rendered via `LazyColumn` + `Card` (Material 3)
+- Top bar `TopAppBar` with the title "SHT study"
+- Floating action button `FloatingActionButton` with "+" (no action yet)
+- `@Preview` added to view the screen without running on a device
+- Habit list switched to `mutableStateListOf` — Compose tracks changes
+- "+" button opens an add-habit dialog (`AlertDialog` + `OutlinedTextField`)
+- Adding a habit: enter a title → validate (not empty) → add to the list
+- Tapping a card toggles `doneToday`
+- ✕ button on a card removes the habit
+- `nextId` counter to generate identifiers for new habits
+
+### **Important:** data is currently stored only in RAM. On app restart the list
+resets to the initial 4 habits. This is expected behavior at this stage.
