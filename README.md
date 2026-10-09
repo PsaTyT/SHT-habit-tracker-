@@ -25,7 +25,7 @@ Planned minimum additions:
 
 ### Current state - Figuring out how to become a competent programmer
 
-#Daily news
+# Daily news
 
 uh.. this is more difficult than I thought
 Thats my fist time using Kotlin but i`v got some progress
