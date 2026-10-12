@@ -28,7 +28,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sht.data.HabitEntity
+import com.example.sht.ui.HabitViewModel
 import com.example.sht.ui.theme.SHTTheme
 
 class MainActivity : ComponentActivity() {
@@ -50,30 +53,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-data class Habit(
-    val id: Int,
-    val title: String,
-    val doneToday: Boolean
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HabitListScreen() {
-    // mutableStateListOf — список, изменения которого Compose отслеживает
-    val habits = remember {
-        mutableStateListOf(
-            Habit(1, "Пить воду", true),
-            Habit(2, "Читать 20 минут", false),
-            Habit(3, "Зарядка", false),
-            Habit(4, "Английский", true),
-        )
-    }
+fun HabitListScreen(
+    viewModel: HabitViewModel = viewModel()
+) {
+    val habits by viewModel.habits.collectAsStateWithLifecycle()
 
-    // Показывать ли диалог добавления
     var showAddDialog by remember { mutableStateOf(false) }
-
-    // Счётчик для генерации id новых привычек
-    var nextId by remember { mutableStateOf(5) }
 
     Scaffold(
         topBar = {
@@ -95,15 +82,8 @@ fun HabitListScreen() {
             items(habits, key = { it.id }) { habit ->
                 HabitRow(
                     habit = habit,
-                    onToggle = {
-                        val index = habits.indexOfFirst { it.id == habit.id }
-                        if (index >= 0) {
-                            habits[index] = habit.copy(doneToday = !habit.doneToday)
-                        }
-                    },
-                    onDelete = {
-                        habits.removeAll { it.id == habit.id }
-                    }
+                    onToggle = { viewModel.toggleHabit(habit) },
+                    onDelete = { viewModel.deleteHabit(habit) }
                 )
             }
         }
@@ -113,8 +93,7 @@ fun HabitListScreen() {
         AddHabitDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { title ->
-                habits.add(Habit(nextId, title, false))
-                nextId += 1
+                viewModel.addHabit(title)
                 showAddDialog = false
             }
         )
@@ -123,7 +102,7 @@ fun HabitListScreen() {
 
 @Composable
 fun HabitRow(
-    habit: Habit,
+    habit: HabitEntity,
     onToggle: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -156,7 +135,6 @@ fun HabitRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            // Кнопка удаления — крестик справа
             TextButton(onClick = onDelete) {
                 Text("✕")
             }
@@ -185,8 +163,7 @@ fun AddHabitDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val trimmed = text.trim()
-                    if (trimmed.isNotEmpty()) onConfirm(trimmed)
+                    onConfirm(text)
                 }
             ) {
                 Text("Добавить")
