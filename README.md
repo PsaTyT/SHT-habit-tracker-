@@ -23,7 +23,7 @@ Planned minimum additions:
 - DataStore — preferences
 - Reminders (notifications)
 
-### Current state - Figuring out how to become a competent programmer
+### Current state - Creating an initial version that is far from the desired result. Also figuring out how to become a competent programmer
 
 # Daily news
 
