@@ -5,16 +5,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sht.data.HabitDatabase
 import com.example.sht.data.HabitEntity
+import com.example.sht.data.HabitWithStatus
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class HabitViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val dao = HabitDatabase.getInstance(application).habitDao()
+    private val habitDao = HabitDatabase.getInstance(application).habitDao()
+    private val completionDao = HabitDatabase.getInstance(application).completionDao()
 
-    val habits: StateFlow<List<HabitEntity>> = dao.getAll()
+    val habits: StateFlow<List<HabitWithStatus>> = habitDao
+        .getAllWithStatus(LocalDate.now())
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -26,19 +30,26 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         if (trimmed.isEmpty()) return
 
         viewModelScope.launch {
-            dao.insert(HabitEntity(title = trimmed, doneToday = false))
+            habitDao.insert(HabitEntity(title = trimmed))
         }
     }
 
-    fun toggleHabit(habit: HabitEntity) {
+    fun toggleHabit(habit: HabitWithStatus) {
         viewModelScope.launch {
-            dao.update(habit.copy(doneToday = !habit.doneToday))
+            val today = LocalDate.now()
+            if (habit.doneToday) {
+                completionDao.deleteByHabitAndDate(habit.id, today)
+            } else {
+                completionDao.insert(
+                    com.example.sht.data.CompletionEntity(habitId = habit.id, date = today)
+                )
+            }
         }
     }
 
-    fun deleteHabit(habit: HabitEntity) {
+    fun deleteHabit(habit: HabitWithStatus) {
         viewModelScope.launch {
-            dao.delete(habit)
+            habitDao.delete(HabitEntity(id = habit.id, title = habit.title))
         }
     }
 }

@@ -7,6 +7,5 @@ import androidx.room.PrimaryKey
 data class HabitEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val title: String,
-    val doneToday: Boolean = false
+    val title: String
 )

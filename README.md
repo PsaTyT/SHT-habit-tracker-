@@ -79,15 +79,30 @@ contains:
 - Validation (non-empty title) moved from UI into the ViewModel
 - Coroutine scope no longer created in the composable
 
-**Architecture after this iteration:**
+### Iteration 5 — completion history and data model fix
+
+- New table `completions` (id, habitId, date) — one row per completed day
+- `HabitEntity` no longer stores `doneToday`; the flag is computed via JOIN
+- `HabitWithStatus` data class — result of the JOIN query
+- `CompletionDao` — insert / delete / check-by-date operations
+- `Converters` — TypeConverter for `LocalDate` stored as epoch day
+- `HabitDatabase` version bumped from 1 to 2
+- **`MIGRATION_1_2` written** — old data preserved:
+    - creates `completions` table
+    - moves `doneToday = 1` entries into `completions` with today's date
+    - recreates `habits` table without the `doneToday` column
+- `HabitViewModel.toggleHabit` now creates / deletes a completion record
+
+**Fixes:** the "midnight bug" is now solvable — habit status is derived from
+completion records, so it naturally resets when the date changes.
 
 ## Roadmap
 
 - [x] In-memory habit list with add / toggle / delete
 - [x] Persistent storage with Room
 - [x] ViewModel layer
-- [ ] Completion history (per-day records instead of `doneToday` boolean)
-- [ ] Fix the "midnight" problem: `doneToday` currently never resets
+- [x] Completion history (per-day records instead of `doneToday` boolean)
+- [x] Fix the "midnight" problem: `doneToday` currently never resets
 - [ ] Streaks — counter of consecutive completed days
 - [ ] History and simple statistics (monthly heatmap)
 - [ ] Reminders via WorkManager / AlarmManager

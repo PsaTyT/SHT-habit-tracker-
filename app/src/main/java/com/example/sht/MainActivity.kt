@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.sht.data.HabitEntity
+import com.example.sht.data.HabitWithStatus
 import com.example.sht.ui.HabitViewModel
 import com.example.sht.ui.theme.SHTTheme
 
@@ -102,7 +102,7 @@ fun HabitListScreen(
 
 @Composable
 fun HabitRow(
-    habit: HabitEntity,
+    habit: HabitWithStatus,
     onToggle: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -161,11 +161,7 @@ fun AddHabitDialog(
             )
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm(text)
-                }
-            ) {
+            TextButton(onClick = { onConfirm(text) }) {
                 Text("Добавить")
             }
         },
