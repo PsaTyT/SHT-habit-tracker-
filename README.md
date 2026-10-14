@@ -8,7 +8,7 @@ A small app for tracking daily habits: a list of habits, a "done today" toggle,
 and (eventually) streaks and statistics.
 
 This is a learning project, built from scratch, step by step. Each iteration
-is a working version of the app.
+is a working version of the app. Don’t throw tomatoes at me.
 
 ## Tech stack
 
