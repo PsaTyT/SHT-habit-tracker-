@@ -10,6 +10,14 @@ and (eventually) streaks and statistics.
 This is a learning project, built from scratch, step by step. Each iteration
 is a working version of the app. Don’t throw tomatoes at me.
 
+## Why
+
+Built for personal use — no accounts, no sync, no ads. Just a local
+database on your phone with your habits. All data stays on the device.
+
+The goal is a small, focused tool: mark habits daily, see your streaks,
+and don't think about anything else.
+
 ## Tech stack
 
 - **Language:** Kotlin
@@ -27,7 +35,14 @@ Planned additions:
 - Reminders (notifications)
 - Dark theme and appearance settings
 
-## Current state
+## Requirements
+
+- **Android Studio** Meerkat (2024.3) or newer
+- **JDK** 17+
+- **Android SDK** with platform API 37 installed
+- A physical device running Android 14 (API 34) or newer, or an emulator
+
+# Current state
 
 ### Iteration 1 — skeleton and static list
 
