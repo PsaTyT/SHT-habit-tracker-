@@ -118,7 +118,7 @@ completion records, so it naturally resets when the date changes.
 - [x] ViewModel layer
 - [x] Completion history (per-day records instead of `doneToday` boolean)
 - [x] Fix the "midnight" problem: `doneToday` currently never resets
-- [ ] Streaks — counter of consecutive completed days
+- [ ] Streaks — counter of consecutive completed days (some bugs and troubles)
 - [ ] History and simple statistics (monthly heatmap)
 - [ ] Reminders via WorkManager / AlarmManager
 - [ ] Real icons instead of text symbols (●, ○, +, ✕)
