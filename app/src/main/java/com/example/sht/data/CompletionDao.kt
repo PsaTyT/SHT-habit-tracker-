@@ -24,4 +24,7 @@ interface CompletionDao {
 
     @Query("DELETE FROM completions WHERE habitId = :habitId")
     suspend fun deleteByHabit(habitId: Long)
+
+    @Query("SELECT * FROM completions")
+    fun getAllCompletions(): Flow<List<CompletionEntity>>
 }

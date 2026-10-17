@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.sht.data.HabitWithStatus
+import com.example.sht.ui.HabitUiModel
 import com.example.sht.ui.HabitViewModel
 import com.example.sht.ui.theme.SHTTheme
 
@@ -67,9 +67,10 @@ fun HabitListScreen(
             TopAppBar(title = { Text("SHT study") })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Text("+", style = MaterialTheme.typography.headlineMedium)
-            }
+                // Основная кнопка +
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Text("+", style = MaterialTheme.typography.headlineMedium)
+                }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -102,7 +103,7 @@ fun HabitListScreen(
 
 @Composable
 fun HabitRow(
-    habit: HabitWithStatus,
+    habit: HabitUiModel,
     onToggle: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -130,7 +131,13 @@ fun HabitRow(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = if (habit.doneToday) "Выполнено сегодня" else "Не выполнено",
+                    text = buildString {
+                        append(if (habit.doneToday) "Выполнено сегодня" else "Не выполнено")
+                        if (habit.streak > 0) {
+                            append("  ·  🔥 ")
+                            append(habit.streak)
+                        }
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

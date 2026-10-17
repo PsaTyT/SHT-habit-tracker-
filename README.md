@@ -85,10 +85,10 @@ contains:
 
 - Dependencies added: `lifecycle-viewmodel-compose`, `lifecycle-runtime-compose`
 - `HabitViewModel` created (extends `AndroidViewModel`):
-    - holds the DAO
-    - exposes `habits: StateFlow<List<HabitEntity>>` via `stateIn`
-    - provides `addHabit`, `toggleHabit`, `deleteHabit`
-    - runs database operations in `viewModelScope`
+  - holds the DAO
+  - exposes `habits: StateFlow<List<HabitEntity>>` via `stateIn`
+  - provides `addHabit`, `toggleHabit`, `deleteHabit`
+  - runs database operations in `viewModelScope`
 - `HabitListScreen` is now thin: gets the ViewModel via `viewModel()`,
   subscribes with `collectAsStateWithLifecycle()`, delegates actions
 - Validation (non-empty title) moved from UI into the ViewModel
@@ -103,9 +103,9 @@ contains:
 - `Converters` — TypeConverter for `LocalDate` stored as epoch day
 - `HabitDatabase` version bumped from 1 to 2
 - **`MIGRATION_1_2` written** — old data preserved:
-    - creates `completions` table
-    - moves `doneToday = 1` entries into `completions` with today's date
-    - recreates `habits` table without the `doneToday` column
+  - creates `completions` table
+  - moves `doneToday = 1` entries into `completions` with today's date
+  - recreates `habits` table without the `doneToday` column
 - `HabitViewModel.toggleHabit` now creates / deletes a completion record
 
 **Fixes:** the "midnight bug" is now solvable — habit status is derived from
