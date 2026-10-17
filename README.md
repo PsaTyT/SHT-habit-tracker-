@@ -10,14 +10,6 @@ and (eventually) streaks and statistics.
 This is a learning project, built from scratch, step by step. Each iteration
 is a working version of the app. Don’t throw tomatoes at me.
 
-## Why
-
-Built for personal use — no accounts, no sync, no ads. Just a local
-database on your phone with your habits. All data stays on the device.
-
-The goal is a small, focused tool: mark habits daily, see your streaks,
-and don't think about anything else.
-
 ## Tech stack
 
 - **Language:** Kotlin
@@ -35,81 +27,56 @@ Planned additions:
 - Reminders (notifications)
 - Dark theme and appearance settings
 
-## Requirements
-
-- **Android Studio** Meerkat (2024.3) or newer
-- **JDK** 17+
-- **Android SDK** with platform API 37 installed
-- A physical device running Android 14 (API 34) or newer, or an emulator
-
-# Current state
+## Current state
 
 ### Iteration 1 — skeleton and static list
 
-- Android Studio project created (Empty Activity, Compose)
-- Environment set up: Android Studio, physical phone via USB debugging
-- `MainActivity` rewritten: instead of the welcome screen — a habit list screen
-- `Habit` data model (id, title, doneToday) — as a data class in code for now
-- Habit list hardcoded (4 items)
-- List rendered via `LazyColumn` + `Card` (Material 3)
-- Top bar `TopAppBar` with the title "SHT study"
-- Floating action button with "+" (no action yet)
-- `@Preview` added to view the screen without running on a device
-
 ### Iteration 2 — in-memory interactivity
-
-- Habit list switched to `mutableStateListOf` — Compose tracks changes
-- "+" button opens an add-habit dialog (`AlertDialog` + `OutlinedTextField`)
-- Adding a habit: enter a title → validate (not empty) → add to the list
-- Tapping a card toggles `doneToday`
-- ✕ button on a card removes the habit
-- `nextId` counter to generate identifiers for new habits
-
-**Limitation:** data was stored only in RAM, reset on every app restart.
 
 ### Iteration 3 — persistent storage with Room
 
-- Room dependencies added (runtime, ktx, compiler) and KSP plugin configured
-- `HabitEntity`, `HabitDao`, `HabitDatabase` created in `data` package
-- Database implemented as a singleton via `HabitDatabase.getInstance(context)`
-- `HabitListScreen` rewritten: reads from the database via `Flow`,
-  writes through coroutines
-- Data now survives app restarts
-
-**Notes on the build setup:** the project uses AGP 9.x with built-in Kotlin
-enabled. To let KSP register its generated sources, `gradle.properties`
-contains:
-**android.disallowKotlinSourceSets=false**
-
 ### Iteration 4 — ViewModel and cleaner architecture
-
-- Dependencies added: `lifecycle-viewmodel-compose`, `lifecycle-runtime-compose`
-- `HabitViewModel` created (extends `AndroidViewModel`):
-  - holds the DAO
-  - exposes `habits: StateFlow<List<HabitEntity>>` via `stateIn`
-  - provides `addHabit`, `toggleHabit`, `deleteHabit`
-  - runs database operations in `viewModelScope`
-- `HabitListScreen` is now thin: gets the ViewModel via `viewModel()`,
-  subscribes with `collectAsStateWithLifecycle()`, delegates actions
-- Validation (non-empty title) moved from UI into the ViewModel
-- Coroutine scope no longer created in the composable
 
 ### Iteration 5 — completion history and data model fix
 
-- New table `completions` (id, habitId, date) — one row per completed day
-- `HabitEntity` no longer stores `doneToday`; the flag is computed via JOIN
-- `HabitWithStatus` data class — result of the JOIN query
-- `CompletionDao` — insert / delete / check-by-date operations
-- `Converters` — TypeConverter for `LocalDate` stored as epoch day
-- `HabitDatabase` version bumped from 1 to 2
-- **`MIGRATION_1_2` written** — old data preserved:
-  - creates `completions` table
-  - moves `doneToday = 1` entries into `completions` with today's date
-  - recreates `habits` table without the `doneToday` column
-- `HabitViewModel.toggleHabit` now creates / deletes a completion record
+### Iteration 6 — current streak calculation
 
-**Fixes:** the "midnight bug" is now solvable — habit status is derived from
-completion records, so it naturally resets when the date changes.
+- Added `StreakCalculator` — a pure Kotlin utility with no Room or Compose
+  dependencies. Its single job is to calculate the current streak from a list
+  of dates.
+- `CompletionDao` now exposes `getAllCompletions(): Flow<List<CompletionEntity>>`
+  to fetch all completion records at once.
+- New `HabitUiModel` data class (in the `ui` package) — represents a habit
+  as the UI needs it: `id`, `title`, `doneToday`, `streak`.
+  - `HabitWithStatus` (in `data`) remains a strict Room mapping of the SQL
+    JOIN result. Separation of layers: Room maps what the DB returns, UI gets
+    a richer model with computed fields.
+- `HabitViewModel` now combines two flows:
+  - `habitDao.getAllWithStatus(today)` — habits + doneToday flag
+  - `completionDao.getAllCompletions()` — all completion records
+    Using `combine`, it groups completions by `habitId`, calculates the streak
+    for each habit via `StreakCalculator`, and emits `List<HabitUiModel>`.
+- UI shows the streak next to the habit status: `Выполнено сегодня · 🔥 5`.
+
+**Streak logic (soft mode):**
+- The streak counts consecutive days up to today **or yesterday**.
+- If the last completion is today → streak is alive.
+- If the last completion is yesterday → streak is still alive (there is time
+  until midnight to complete today).
+- If the last completion is older than yesterday → streak is 0.
+
+**Verification:**
+- Verified `StreakCalculator` manually through a temporary debug function
+  covering 8 cases (empty, today, today+yesterday, 5 days in a row, gaps,
+  future dates, etc.). All cases produced correct results.
+- Verified integration by inserting test completions directly into the
+  database: habits with records for today + yesterday + day-before-yesterday
+  correctly display a streak of 3.
+
+**Known limitation:** `today` is captured once when the ViewModel is created.
+If the app stays open past midnight, the streak and "done today" flag won't
+update until the ViewModel is recreated (e.g., app restart). Will be fixed
+in a future iteration.
 
 ## Roadmap
 
@@ -117,20 +84,33 @@ completion records, so it naturally resets when the date changes.
 - [x] Persistent storage with Room
 - [x] ViewModel layer
 - [x] Completion history (per-day records instead of `doneToday` boolean)
-- [x] Fix the "midnight" problem: `doneToday` currently never resets
-- [ ] Streaks — counter of consecutive completed days (some bugs and troubles)
+- [x] Fix the "midnight" problem: `doneToday` now resets naturally
+- [x] Current streak calculation
+- [ ] Unit tests for `StreakCalculator` and other pure logic
+- [ ] Best streak — longest consecutive sequence ever recorded
 - [ ] History and simple statistics (monthly heatmap)
+- [ ] Fix `today` staleness: recreate date when the app stays open past midnight
 - [ ] Reminders via WorkManager / AlarmManager
-- [ ] Real icons instead of text symbols (●, ○, +, ✕)
+- [ ] Real icons instead of text symbols (●, ○, +, ✕, 🔥)
 - [ ] Dark theme and appearance settings
-- [ ] Final design and app name
+- [ ] Final design and app nam
 
-## Notes
+## Known limitations
 
-- Colors come from the theme (`MaterialTheme.colorScheme.primary`, etc.)
-  rather than being hardcoded — this makes it easy to change the look
-  and add a dark/light theme later.
-- Database operations run on coroutines; the UI never touches Room on the
-  main thread.
-- Iterations move in small steps: each one is a working version of the app
-  that can be launched and used.
+- **`today` staleness:** `HabitViewModel` captures `LocalDate.now()` once at
+  creation. If the app stays open past midnight, "done today" and the streak
+  won't update until the ViewModel is recreated (app restart). Acceptable for
+  now; will be fixed by listening to date-change events or recreating the flow
+  on schedule.
+- **No unit tests yet.** `StreakCalculator` was verified manually; automated
+  tests are on the roadmap.
+- **No dark theme toggle** — the app follows the system setting only.
+- **No reminders / notifications.**
+- **No backup or export.** All data is local to the device; there is no way to
+  save or migrate it to another phone.
+- **Streak is "soft".** If yesterday was completed but today has not been yet,
+  the streak is still considered alive. Some habit trackers use a "strict"
+  mode where the streak resets at midnight if today isn't marked. A strict
+  mode may be added as a setting later.
+- **No history view.** Records exist in the database, but there's no UI to
+  browse them.
